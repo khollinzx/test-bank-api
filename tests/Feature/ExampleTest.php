@@ -99,5 +99,13 @@ class ExampleTest extends TestCase
             'Authorization' => "Bearer $token",
         ])->post('api/v1/customers/transfer?guard=customer', $details);
         $response->assertStatus(200);
+
+        //Retrieve account histories
+        $senderAccount = Account::getRecordByAccountNumber('user_id', $authUserId);
+        $response = $this->withHeaders([
+            'Accept' => 'application/json',
+            'Authorization' => "Bearer $token",
+        ])->get("api/v1/customers/$senderAccount->id/histories?guard=customer", $details);
+        $response->assertStatus(200);
     }
 }

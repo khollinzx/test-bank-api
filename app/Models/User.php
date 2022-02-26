@@ -61,6 +61,7 @@ class User extends Authenticatable
 
     protected $relationships = [
         "accounts",
+        "accounts.transfers",
         "role"
     ];
 

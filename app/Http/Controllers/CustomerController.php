@@ -39,9 +39,9 @@ class CustomerController extends Controller
 
             $ReceiverAccount = $this->accountModel::getRecordByAccountNumber('account_no', $validated["receiver_account_no"]);
 
-            $this->accountModel::performTransfer($sendAccount, $validated["amount"], false);
+            $this->accountModel::debitSender($sendAccount, $validated["amount"]);
 
-            $this->accountModel::performTransfer($ReceiverAccount, $validated["amount"]);
+            $this->accountModel::creditReceiver($ReceiverAccount, $validated["amount"]);
 
             return JsonAPIResponse::sendSuccessResponse("Transfer was successful", $sendAccount);
         } catch (\Exception $exception) {
@@ -63,6 +63,23 @@ class CustomerController extends Controller
             $Accounts = $this->accountModel->fetchAllAccounts($customerId);
             if(count($Accounts))
                 return JsonAPIResponse::sendSuccessResponse("All Accounts", $Accounts);
+
+        } catch (\Exception $exception) {
+            Log::error($exception);
+            return JsonAPIResponse::sendErrorResponse("Internal Server error", JsonAPIResponse::$INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * @return JsonResponse
+     */
+    public function getAccountsDetails(int $account_id): JsonResponse
+    {
+        try {
+            if(!$this->accountModel->getAccountById($account_id))
+                return JsonAPIResponse::sendErrorResponse("No Records Found");
+
+            return JsonAPIResponse::sendSuccessResponse("Account Details", $this->accountModel->getAccountById($account_id));
 
         } catch (\Exception $exception) {
             Log::error($exception);

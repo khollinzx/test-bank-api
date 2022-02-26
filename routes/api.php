@@ -46,6 +46,7 @@ Route::group(['middleware' => ['set-header'], 'prefix' => 'v1'], function () {
             {
                 Route::post('transfer', 'CustomerController@transferMoney');
                 Route::get('pull/all', 'CustomerController@getCustomerAccounts');
+                Route::get('{account_id}/histories', 'CustomerController@getAccountsDetails');
             });
 
         });
