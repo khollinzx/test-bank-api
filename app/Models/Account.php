@@ -13,6 +13,7 @@ class Account extends Model
     use HasFactory;
 
     protected $relationships = [
+        "transfers",
         "user",
     ];
 
@@ -24,12 +25,21 @@ class Account extends Model
         return $this->belongsTo(User::class, "user_id");
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\MorphMany
+     */
+    public function transfers(): \Illuminate\Database\Eloquent\Relations\MorphMany
+    {
+        return $this->morphMany(TransferHistory::class, 'transferable');
+    }
+
     public function getClient(): User
     {
         return $this->user;
     }
 
     /**check if exist
+     * @param int $userId
      * @param string $column
      * @param $value
      * @return mixed
@@ -55,22 +65,28 @@ class Account extends Model
             ->first();
     }
 
-    /**check if exist
-     * @param User $userId
-     * @param string $column
-     * @param $value
+    /**
+     * @param Account $Account
+     * @param float $amount
      * @return mixed
      */
-    public static function performTransfer(Account $Account, float $amount, bool $isCredit = true)
+    public static function creditReceiver(Account $Account, float $amount)
     {
-        if($isCredit){
             $credit = ($Account->amount + $amount);
             Helpers::saveModelRecord($Account, ["amount" => $credit]);
-        }else{
-            $debit = ($Account->amount - $amount);
-            Helpers::saveModelRecord($Account, ["amount" => $debit]);
-        }
 
+    }
+
+/**
+ * @param Account $Account
+ * @param float $amount
+ * @return mixed
+ */
+    public static function debitSender(Account $Account, float $amount)
+    {
+        $debit = ($Account->amount - $amount);
+        Helpers::saveModelRecord($Account, ["amount" => $debit]);
+        TransferHistory::setTransferHistory($Account->user_id, $amount, $Account);
     }
 
     /**
